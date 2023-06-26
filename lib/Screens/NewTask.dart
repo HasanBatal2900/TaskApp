@@ -1,17 +1,20 @@
-import 'dart:js_interop';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:task_app/Model/Task.dart';
 import 'package:intl/intl.dart';
 
 class NewTask extends StatefulWidget {
-  const NewTask({super.key});
+  const NewTask({super.key, required this.addingTask});
+  final Function(Task) addingTask;
 
   @override
   State<NewTask> createState() => _NewTaskState();
 }
 
 class _NewTaskState extends State<NewTask> {
+  TextEditingController _amontController = TextEditingController();
+  TextEditingController _titleController = TextEditingController();
   void _showDatePicker() async {
     var now = DateTime.now();
     var first = DateTime(now.year - 1, now.month, now.day);
@@ -28,8 +31,9 @@ class _NewTaskState extends State<NewTask> {
   }
 
   void _sumbitData() {
-    bool invalidCount = count <= 0 || count.isNull;
-    if (invalidCount || _selectedDate == null || title==null) {
+    _selectedCount = int.parse(_amontController.text);
+    bool invalidCount = _selectedCount <= 0 || _selectedCount == null;
+    if (invalidCount || _selectedDate == null || _selectedTitle == null) {
       showDialog(
         context: context,
         builder: (context) {
@@ -39,19 +43,40 @@ class _NewTaskState extends State<NewTask> {
               "Invaild Input",
             ),
             content: const Text("Try To Add A Valid Contet Please"),
-            actions: [TextButton(onPressed: () {}, child: Text("Okey"))],
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    setState(() {
+                      //   _amontController.text = "";
+                      //   _titleController.text = "";
+                      //
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Okey"))
+            ],
           );
         },
       );
+    } else {
+      log("adding Task");
+      widget.addingTask(Task(
+          category: currentCategory,
+          count: _selectedCount,
+          dateTime: _selectedDate!,
+          title: _selectedTitle!,
+          rateCount: currentRate));
     }
+    Navigator.pop(context);
   }
 
   DateFormat formatter = DateFormat.yMd();
   DateTime? _selectedDate;
   Category currentCategory = Category.lifeStyle;
   RateCount currentRate = RateCount.daily;
-  late String title;
-  late int count;
+  String? _selectedTitle;
+  int _selectedCount = 0;
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -66,7 +91,7 @@ class _NewTaskState extends State<NewTask> {
               TextField(
                 onChanged: (value) {
                   setState(() {
-                    title = value;
+                    _selectedTitle = value;
                   });
                 },
                 keyboardType: TextInputType.text,
@@ -80,7 +105,7 @@ class _NewTaskState extends State<NewTask> {
                       child: TextField(
                         onChanged: (value) {
                           setState(() {
-                            count = int.parse(value);
+                            _amontController.text = value;
                           });
                         },
                         keyboardType: TextInputType.number,
@@ -175,7 +200,7 @@ class _NewTaskState extends State<NewTask> {
                     child: const Text("Close"),
                   ),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: _sumbitData,
                     child: const Text("Add New Task"),
                   ),
                 ],
