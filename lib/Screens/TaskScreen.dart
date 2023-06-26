@@ -43,11 +43,18 @@ class _TaskScreenState extends State<TaskScreen>
   ];
 
   @override
+  void dispose() {
+    super.dispose();
+    controller.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     controller = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 700));
-    animation = CurvedAnimation(parent: controller, curve: Curves.bounceIn);
+        vsync: this, duration: const Duration(milliseconds: 1700))
+      ..repeat(reverse: true);
+    animation = CurvedAnimation(parent: controller, curve: Curves.fastOutSlowIn);
   }
 
   @override
@@ -63,13 +70,7 @@ class _TaskScreenState extends State<TaskScreen>
       setState(() {
         tasks.remove(task);
       });
-      controller.addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          controller.forward(from: 0);
-        } else {
-          controller.forward();
-        }
-      });
+
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         animation:
             CurvedAnimation(parent: controller, curve: Curves.bounceInOut),
