@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:task_app/Model/Task.dart';
+import 'package:task_app/Model/updateTaskData.dart';
 import 'package:task_app/Screens/UpdateTask.dart';
 
 class TaskItem extends StatefulWidget {
-  const TaskItem({super.key, required this.task});
-
+  const TaskItem(
+      {super.key,
+      required this.task,
+      required this.updateTask,
+      required this.index});
+  final int index;
   final Task task;
-
+  final void Function(Task, int) updateTask;
   @override
   State<TaskItem> createState() => _TaskItemState();
 }
@@ -34,16 +39,19 @@ class _TaskItemState extends State<TaskItem>
           Navigator.push(
               context,
               PageRouteBuilder(
+                settings: RouteSettings(
+                    arguments:
+                        updateTaskData(index: widget.index, task: widget.task)),
                 transitionDuration: const Duration(milliseconds: 600),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
-                  return RotationTransition(
-                    turns: animation,
+                  return ScaleTransition(
+                    scale: animation,
                     child: child,
                   );
                 },
                 pageBuilder: (context, animation, secondaryAnimation) {
-                  return const UpdateScreen();
+                  return UpdateScreen(updateTask: widget.updateTask);
                 },
               ));
         },
@@ -71,7 +79,7 @@ class _TaskItemState extends State<TaskItem>
               ),
               Text(
                 "${widget.task.formattedDate}",
-                style: TextStyle(fontSize: 14),
+                style: const TextStyle(fontSize: 14),
               ),
             ],
           ),

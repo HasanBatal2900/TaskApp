@@ -3,9 +3,10 @@ import 'TaskItem.dart';
 import 'package:task_app/Model/Task.dart';
 
 class TasksList extends StatefulWidget {
-  const TasksList({super.key, required this.tasks, required this.removeTask});
+  const TasksList({super.key, required this.tasks, required this.removeTask,required this.updateTask});
   final List<Task> tasks;
   final void Function(Task) removeTask;
+  final void Function(Task, int) updateTask;
 
   @override
   State<TasksList> createState() => _TasksListState();
@@ -22,7 +23,7 @@ class _TasksListState extends State<TasksList> {
               margin: const EdgeInsets.all(5.0),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10.0),
-                color:const Color.fromARGB(255, 171, 137, 242),
+                color: const Color.fromARGB(255, 171, 137, 242),
               ),
             ),
             onDismissed: (direction) {
@@ -31,7 +32,7 @@ class _TasksListState extends State<TasksList> {
               });
             },
             key: ValueKey(widget.tasks[index]),
-            child: TaskItem(task: widget.tasks[index]));
+            child: TaskItem(task: widget.tasks[index],updateTask:widget.updateTask,index:index));
       },
     );
   }

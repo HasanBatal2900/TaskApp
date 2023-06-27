@@ -166,12 +166,18 @@ class _LeadingScreenState extends State<LeadingScreen>
                                       );
                                     },
                                     transitionDuration:
-                                        const Duration(milliseconds: 600),
+                                        const Duration(milliseconds: 400),
                                     pageBuilder: (context, animation,
                                         secondaryAnimation) {
                                       return const TaskScreen();
                                     },
                                   ));
+                              setState(() {
+                                btnChild = const Text(
+                                  "Start Work",
+                                  style: TextStyle(color: Colors.white),
+                                );
+                              });
                             });
                           },
                         );
