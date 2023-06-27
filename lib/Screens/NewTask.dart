@@ -14,7 +14,6 @@ class NewTask extends StatefulWidget {
 
 class _NewTaskState extends State<NewTask> {
   TextEditingController _amontController = TextEditingController();
-  TextEditingController _titleController = TextEditingController();
   void _showDatePicker() async {
     var now = DateTime.now();
     var first = DateTime(now.year - 1, now.month, now.day);

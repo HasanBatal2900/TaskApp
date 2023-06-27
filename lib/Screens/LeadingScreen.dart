@@ -10,7 +10,14 @@ class LeadingScreen extends StatefulWidget {
   State<LeadingScreen> createState() => _LeadingScreenState();
 }
 
-class _LeadingScreenState extends State<LeadingScreen> {
+class _LeadingScreenState extends State<LeadingScreen>
+    with TickerProviderStateMixin {
+  late AnimationController coloringController;
+  late Animation coloringAnimation;
+  late Animation secondColorAnimation;
+  late AnimationController btnController;
+  late Animation<double> btnAnimation;
+
   List<LeadingImage> leadings = [
     const LeadingImage(
         image: "images/1.png", text: "Adding tasks with soomth date"),
@@ -19,49 +26,89 @@ class _LeadingScreenState extends State<LeadingScreen> {
     const LeadingImage(
         image: "images/3.png", text: "Have full control to all your tasks"),
   ];
+
   int activeIndex = 0;
+
+  Widget btnChild = const Text(
+    "Start Work",
+    style: TextStyle(color: Colors.white),
+  );
+  Color btnColor = Colors.deepPurpleAccent;
+  @override
+  void initState() {
+    super.initState();
+    coloringController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1100))
+      ..repeat(reverse: true);
+    coloringAnimation = ColorTween(
+            begin: const Color.fromARGB(255, 156, 167, 241),
+            end: const Color.fromARGB(255, 186, 153, 242))
+        .animate(coloringController);
+    secondColorAnimation = ColorTween(
+            begin: const Color.fromARGB(255, 118, 108, 159),
+            end: const Color.fromARGB(255, 145, 95, 232))
+        .animate(coloringController);
+
+    btnController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 500));
+    btnAnimation =
+        CurvedAnimation(parent: btnController, curve: Curves.bounceIn);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    coloringController.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(colors: [
-                Color.fromARGB(255, 156, 167, 241),
-                Colors.deepPurple,
-              ], begin: Alignment.topLeft, end: Alignment.bottomRight),
-            ),
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 600,
-                  child: PageView.builder(
-                    onPageChanged: (value) {
-                      setState(() {
-                        activeIndex = value;
-                      });
-                    },
-                    itemCount: leadings.length,
-                    itemBuilder: (context, index) {
-                      return leadings[index];
-                    },
-                  ),
+          AnimatedBuilder(
+            animation: coloringController,
+            builder: (context, child) {
+              return Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: [
+                    coloringAnimation.value,
+                    secondColorAnimation.value
+                  ], begin: Alignment.topLeft, end: Alignment.bottomRight),
                 ),
-              ],
-            ),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 600,
+                      child: PageView.builder(
+                        onPageChanged: (value) {
+                          setState(() {
+                            activeIndex = value;
+                          });
+                        },
+                        itemCount: leadings.length,
+                        itemBuilder: (context, index) {
+                          return leadings[index];
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
           Positioned(
             bottom: 245,
-            left: 130,
+            left: 160,
             child: AnimatedSmoothIndicator(
+              duration: const Duration(milliseconds: 500),
               activeIndex: activeIndex,
               count: leadings.length,
               axisDirection: Axis.horizontal,
               curve: Curves.bounceIn,
               effect: SwapEffect(
                   strokeWidth: 1.3,
-                  dotWidth: 35,
+                  dotWidth: 10,
                   dotHeight: 10,
                   paintStyle: PaintingStyle.stroke,
                   activeDotColor: const Color.fromARGB(255, 175, 137, 242),
@@ -71,40 +118,73 @@ class _LeadingScreenState extends State<LeadingScreen> {
             ),
           ),
           Positioned(
-            bottom: 200,
+            bottom: 160,
             left: 120,
-            child: MaterialButton(
-              minWidth: 150,
-              height: 50,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0)),
-              color: Colors.deepPurpleAccent,
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    PageRouteBuilder(
-                      transitionsBuilder:
-                          (context, animation, secondaryAnimation, child) {
-                        animation = CurvedAnimation(
-                          curve: Curves.fastOutSlowIn,
-                          parent: animation,
-                        );
+            child: AnimatedBuilder(
+              animation: btnAnimation,
+              builder: (context, child) {
+                return MaterialButton(
+                    minWidth: 150,
+                    height: 50,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0)),
+                    color: btnColor,
+                    onPressed: () async {
+                      Future.delayed(const Duration(milliseconds: 1500), () {
+                        setState(
+                          () {
+                            btnController.forward();
+                            btnColor = const Color.fromARGB(255, 98, 81, 197);
+                            btnChild = RotationTransition(
+                              turns: btnAnimation,
+                              alignment: Alignment.center,
+                              child: const CircleAvatar(
+                                radius: 15,
+                                backgroundColor: Colors.white,
+                                child: Icon(
+                                  Icons.done,
+                                  color: Colors.deepPurpleAccent,
+                                ),
+                              ),
+                            );
 
-                        return ScaleTransition(
-                          scale: animation,
-                          child: child,
+                            Future.delayed(const Duration(milliseconds: 500),
+                                () {
+                              Navigator.push(
+                                  context,
+                                  PageRouteBuilder(
+                                    transitionsBuilder: (context, animation,
+                                        secondaryAnimation, child) {
+                                      animation = CurvedAnimation(
+                                        curve: Curves.fastOutSlowIn,
+                                        parent: animation,
+                                      );
+
+                                      return ScaleTransition(
+                                        scale: animation,
+                                        child: child,
+                                      );
+                                    },
+                                    transitionDuration:
+                                        const Duration(milliseconds: 600),
+                                    pageBuilder: (context, animation,
+                                        secondaryAnimation) {
+                                      return const TaskScreen();
+                                    },
+                                  ));
+                            });
+                          },
                         );
-                      },
-                      transitionDuration: const Duration(milliseconds: 600),
-                      pageBuilder: (context, animation, secondaryAnimation) {
-                        return const TaskScreen();
-                      },
-                    ));
+                      });
+
+                      setState(() {
+                        btnChild = const CircularProgressIndicator(
+                          color: Colors.white,
+                        );
+                      });
+                    },
+                    child: btnChild);
               },
-              child: const Text(
-                "Start Work",
-                style: TextStyle(color: Colors.white),
-              ),
             ),
           )
         ],
